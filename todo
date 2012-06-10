@@ -21,6 +21,7 @@ class TodoManager
   VERSION = '0.0.0'
 
   def main()
+    system("clear")
     loop do
       cmd = get_character
       run_cmd(cmd)
@@ -30,7 +31,6 @@ class TodoManager
   def initialize()
     @list = [ListElement.new("Drink coffee"), ListElement.new("Buy milk"), ListElement.new("Check out Sugar cafe")]
     @current = 0
-    system("clear")
   end
 
   private
@@ -46,12 +46,8 @@ class TodoManager
       }
     end
 
-    def parse(cmd)
-      commands[cmd]
-    end
-
     def run_cmd(cmd)
-      case parse(cmd.chr)
+      case commands[cmd.chr]
       when :key_up
         @current -= 1 unless @current.zero?
         print_list()
@@ -63,20 +59,21 @@ class TodoManager
         el.done = !el.done
         print_list()
       when :add_task
-        print_list
-        print "Add to the list: "
+        print_list('Add new task: ')
         STDOUT.flush
         task = STDIN.readline
         @list << ListElement.new(task)
         system('clear')
-        print_list
+        print_list()
       when :delete_task
-        @list.delete_at(@current)
+        print_list('Delete? [yN]: ')
+        STDOUT.flush
+        @list.delete_at(@current) if STDIN.readline.chomp == 'y'
         system('clear')
-        print_list
+        print_list()
       when :quit
         print_list()
-        puts ""
+        puts 'Exiting!'
         exit(0)
       end
     end
@@ -87,7 +84,7 @@ class TodoManager
       end
     end
 
-    def print_list
+    def print_list(ask=nil)
       puts ' '*50
       print_header()
       @list.each_with_index do |el, i|
@@ -95,6 +92,7 @@ class TodoManager
       end
       print_footer()
       puts ' '*50
+      print ask unless ask.nil?
       STDOUT.flush
     end
 
