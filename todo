@@ -1,0 +1,146 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'logger'
+require "highline/system_extensions"
+require 'colorize'
+
+include HighLine::SystemExtensions
+
+class ListElement
+  attr_reader :task, :created_at, :done
+  attr_writer :done
+
+  def initialize(task)
+    @is_done = false
+    @task = task.chomp
+    @created_at = Time.now
+  end
+end
+
+class TodoManager
+  VERSION = '0.0.0'
+
+  def main()
+    loop do
+      cmd = get_character
+      run_cmd(cmd)
+    end
+  end
+
+  def initialize()
+    @list = [ListElement.new("Drink coffee"), ListElement.new("Buy milk"), ListElement.new("Check out Sugar cafe")]
+    @current = 0
+    system("clear")
+  end
+
+  private
+
+    def commands
+      {
+        'w' => :key_up,
+        's' => :key_down,
+        'a' => :add_task,
+        'x' => :toggle_task,
+        'd' => :delete_task,
+        'q' => :quit
+      }
+    end
+
+    def parse(cmd)
+      commands[cmd]
+    end
+
+    def run_cmd(cmd)
+      case parse(cmd.chr)
+      when :key_up
+        @current -= 1 unless @current.zero?
+        print_list()
+      when :key_down
+        @current += 1 unless @current == @list.length - 1
+        print_list()
+      when :toggle_task
+        el = @list[@current]
+        el.done = !el.done
+        print_list()
+      when :add_task
+        print_list
+        print "Add to the list: "
+        STDOUT.flush
+        task = STDIN.readline
+        @list << ListElement.new(task)
+        system('clear')
+        print_list
+      when :delete_task
+        @list.delete_at(@current)
+        system('clear')
+        print_list
+      when :quit
+        print_list()
+        puts ""
+        exit(0)
+      end
+    end
+
+    def print_menu
+      commands.each do |k, v|
+        puts "[#{k}] #{v.to_s.gsub('_', ' ').capitalize}"
+      end
+    end
+
+    def print_list
+      puts ' '*50
+      print_header()
+      @list.each_with_index do |el, i|
+        print_el(el, @current == i)
+      end
+      print_footer()
+      puts ' '*50
+      STDOUT.flush
+    end
+
+    def print_el(el, current)
+      task = el.task
+      out = ''
+      out << checkbox(el) + ' '
+      if current
+        out << format_current(task)
+      else
+        out << task
+      end
+      puts out + ' '*(50-out.length)
+    end
+
+    def print_header()
+      banner = " TodoManager (v.#{VERSION}) "
+      out = ''
+      num_dashes = (50 - banner.length)/2
+      out << '-'*num_dashes
+      out << "#{banner.colorize(:color => :black, :background => :white)}"
+      out << '-'*(50 - (banner.length + num_dashes))
+      puts out
+    end
+
+    def print_footer()
+      puts '-'*50
+      print_menu
+      puts '-'*50
+    end
+
+    def format_current(str)
+      str.colorize(:background => :red)
+    end
+
+    def checkbox(el)
+      if el.done then '[X]' else '[ ]' end
+    end
+end
+
+if $0 == __FILE__
+  manager = TodoManager.new()
+  ret = manager.main()
+  begin
+    exit(ret)
+  rescue TypeError
+    exit(0)
+  end
+end
