@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
 require 'rubygems'
 require 'logger'
-require "highline/system_extensions"
+require 'highline/system_extensions'
 require 'colorize'
+require 'yaml'
 
 include HighLine::SystemExtensions
 
@@ -17,71 +18,77 @@ class ListElement
   end
 end
 
+class Command
+  attr_reader :shortcut, :desc, :ask
+
+  def initialize(shortcut, desc, ask=nil)
+    @shortcut, @desc, @ask = shortcut, desc, ask
+  end
+end
+
 class TodoManager
   VERSION = '0.0.0'
+  COMMANDS = [Command.new('k', :key_up),
+              Command.new('j', :key_down),
+              Command.new('a', :add_task, 'Enter the task: '),
+              Command.new('s', :add_subtask, 'Enter the subtask: '),
+              Command.new('x', :toggle_task),
+              Command.new('d', :delete_task, 'Delete? [yN]: '),
+              Command.new('q', :quit, 'Quit? [yN]: ')]
+
+  def initialize(config=nil)
+    @config = load_config(config) unless config.nil?
+    @list = [ListElement.new("Drink coffee"), ListElement.new("Buy milk"), ListElement.new("Check out Sugar cafe")]
+    @current = 0
+    @num_tasks = 0
+  end
 
   def main()
-    system("clear")
+    clear_screen()
     loop do
       cmd = get_character
       run_cmd(cmd)
     end
   end
 
-  def initialize()
-    @list = [ListElement.new("Drink coffee"), ListElement.new("Buy milk"), ListElement.new("Check out Sugar cafe")]
-    @current = 0
-  end
-
   private
 
-    def commands
-      {
-        'w' => :key_up,
-        's' => :key_down,
-        'a' => :add_task,
-        'x' => :toggle_task,
-        'd' => :delete_task,
-        'q' => :quit
-      }
+    def load_config(config)
+      YAML.load_file(config)
     end
 
-    def run_cmd(cmd)
-      case commands[cmd.chr]
+    def clear_screen()
+      system('clear')
+    end
+
+    def run_cmd(sc)
+      command = COMMANDS.find { |c| c.shortcut == sc.chr }
+      return if command.nil?
+      print_list(command.ask)
+      case command.desc
       when :key_up
         @current -= 1 unless @current.zero?
-        print_list()
       when :key_down
         @current += 1 unless @current == @list.length - 1
-        print_list()
       when :toggle_task
         el = @list[@current]
         el.done = !el.done
-        print_list()
       when :add_task
-        print_list('Add new task: ')
-        STDOUT.flush
-        task = STDIN.readline
-        @list << ListElement.new(task)
-        system('clear')
-        print_list()
+        task = STDIN.readline.chomp
+        @list << ListElement.new(task) unless task == ''
+      when :add_subtask
+        subtask = STDIN.readline.chomp
+        return unless subtask == ''
       when :delete_task
-        print_list('Delete? [yN]: ')
-        STDOUT.flush
         @list.delete_at(@current) if STDIN.readline.chomp == 'y'
-        system('clear')
-        print_list()
       when :quit
-        print_list()
-        puts 'Exiting!'
-        exit(0)
+        if STDIN.readline.chomp == 'y'
+          puts 'Exiting!'
+          exit(0)
+        end
       end
-    end
-
-    def print_menu
-      commands.each do |k, v|
-        puts "[#{k}] #{v.to_s.gsub('_', ' ').capitalize}"
-      end
+      clear_screen()
+      print_list()
     end
 
     def print_list(ask=nil)
@@ -89,6 +96,9 @@ class TodoManager
       print_header()
       @list.each_with_index do |el, i|
         print_el(el, @current == i)
+      end
+      if @list.empty?
+        puts "No tasks found."
       end
       print_footer()
       puts ' '*50
@@ -120,7 +130,9 @@ class TodoManager
 
     def print_footer()
       puts '-'*50
-      print_menu
+      COMMANDS.each do |c|
+        puts "[#{c.shortcut}] #{c.desc.to_s.gsub('_', ' ').capitalize}"
+      end
       puts '-'*50
     end
 
