@@ -21,7 +21,7 @@ class TodoManager
 
   def initialize(config=nil)
     @config = load_config(config) unless config.nil?
-    @list = [Task.new("Drink coffee"), Task.new("Buy milk"), Task.new("Check out Sugar cafe")]
+    @list = ListStore.latest_list || Array.new
     @current = 0
     @num_tasks = 0
   end
@@ -75,7 +75,6 @@ class TodoManager
 
     def quit
       puts 'Storing current list...'
-      puts @list.inspect
       ListStore.store(@list)
       puts 'Current list stored. Exiting!'
       exit(0)

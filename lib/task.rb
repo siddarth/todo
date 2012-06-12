@@ -16,7 +16,7 @@ class Task
 
   class << self
     def from_hash(h)
-      Task.new(h['task'], h['is_done'], h['created_at'])
+      Task.new(h['task'], h['done'], h['created_at'])
     end
   end
 end
