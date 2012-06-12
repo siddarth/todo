@@ -1,24 +1,39 @@
 # Todo
 
 ### Motivation
-A todo manager that is no-frills, can maange todo lists on a day-to-day basis
+A todo manager with the following properties:
 
-### Status
-Work in progress. The two major things that I'm hoping to do:
+1. Is no-frills.
+2. Does not require me leaving my shell.
+3. Can maange todo lists from day-to-day.
+4. Leaves behind logs of per-day activity so that
+   I can track my productivity.
 
-1.  Refactor/clean up code (I hacked this together in less than an hour).
-2.  Store todo lists in txt files in some directory. Now, open a new txt file per day. Now, manage todo lists from day-to-day.
+### Todo
+
+1. Add subtasks. This shouldn't be too hard, but will require
+   rearchitecting.
+2. Possibly show more information (created_at?) in the display.
+3. Interface to calculate productivity stats.
 
 ### Usage
 
+Clone the repository:
+
+    $ git clone git://github.com/siddarth/todo.git
+    $ cd todo
+
+Create the log directory (where logs of past todo lists are stored):
+
+    $ mkdir log
     $ ./todo
 
 ### Output
 
-    ------------- TodoManager (v.0.0.0) --------------
+    -------------- TodoManager (v.1.0) ---------------
     [ ] Drink coffee
-    [ ] Buy milk
-    [ ] Check out Sugar cafe
+    [x] Buy milk
+    [ ] Write code
     --------------------------------------------------
     [a] Add task
     [w] Key up
