@@ -5,7 +5,7 @@ A todo manager with the following properties:
 
 1. Is no-frills.
 2. Does not require me leaving my shell.
-3. Can maange todo lists from day-to-day.
+3. Can manage todo lists from day-to-day.
 4. Leaves behind logs of per-day activity so that
    I can track my productivity.
 

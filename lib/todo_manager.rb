@@ -10,11 +10,10 @@ require File.expand_path('list_store', File.dirname(__FILE__))
 include HighLine::SystemExtensions
 
 class TodoManager
-  VERSION = '0.0.0'
+  VERSION = '1.0'
   COMMANDS = [Command.new('k', :key_up),
               Command.new('j', :key_down),
               Command.new('a', :add_task, 'Enter the task: '),
-              Command.new('s', :add_subtask, 'Enter the subtask: '),
               Command.new('x', :toggle_task),
               Command.new('d', :delete_task, 'Delete? [yN]: '),
               Command.new('q', :quit, 'Quit? [yN]: ')]
@@ -59,10 +58,6 @@ class TodoManager
         task = STDIN.readline.chomp
         @num_tasks += 1
         @list << Task.new(task) unless task == ''
-      when :add_subtask
-        subtask = STDIN.readline.chomp
-        @num_tasks += 1
-        return unless subtask == ''
       when :delete_task
         @num_tasks -= 1
         @list.delete_at(@current) if STDIN.readline.chomp == 'y'
