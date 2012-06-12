@@ -3,8 +3,9 @@ require 'logger'
 require 'highline/system_extensions'
 require 'colorize'
 require 'yaml'
-require File.expand_path('../task', __FILE__)
-require File.expand_path('../command', __FILE__)
+require File.expand_path('task', File.dirname(__FILE__))
+require File.expand_path('command', File.dirname(__FILE__))
+require File.expand_path('list_store', File.dirname(__FILE__))
 
 include HighLine::SystemExtensions
 
@@ -53,8 +54,7 @@ class TodoManager
       when :key_down
         @current += 1 unless @current == @list.length - 1
       when :toggle_task
-        el = @list[@current]
-        el.done = !el.done
+        @list[@current].done = !@list[@current].done
       when :add_task
         task = STDIN.readline.chomp
         @num_tasks += 1
@@ -67,13 +67,18 @@ class TodoManager
         @num_tasks -= 1
         @list.delete_at(@current) if STDIN.readline.chomp == 'y'
       when :quit
-        if STDIN.readline.chomp == 'y'
-          puts 'Exiting!'
-          exit(0)
-        end
+        quit if STDIN.readline.chomp == 'y'
       end
       clear_screen()
       print_list()
+    end
+
+    def quit
+      puts 'Storing current list...'
+      puts @list.inspect
+      ListStore.store(@list)
+      puts 'Current list stored. Exiting!'
+      exit(0)
     end
 
     def print_list(ask=nil)
@@ -100,7 +105,6 @@ class TodoManager
       else
         out << task
       end
-      el.subtasks.each { |t| print_el(t, current, depth + 1)}
       puts out + ' '*(50-out.length)
     end
 
@@ -123,7 +127,7 @@ class TodoManager
     end
 
     def format_current(str)
-      str.colorize(:background => :red)
+      str.dup.colorize(:background => :red)
     end
 
     def checkbox(el)
